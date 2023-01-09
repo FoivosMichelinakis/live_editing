@@ -1,0 +1,10 @@
+FROM foivosm/base:core
+
+MAINTAINER foivos@simula.no
+
+RUN mkdir -p /opt/live_editing
+COPY files/* /opt/live_editing/
+
+RUN apt-get update && apt-get install -y vim && apt-get clean
+
+ENTRYPOINT ["dumb-init", "--", "/bin/bash", "/opt/live_editing/live_editing.sh"]
