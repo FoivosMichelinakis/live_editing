@@ -1,4 +1,4 @@
-FROM foivosm/base:core
+FROM crnaeng/base:core
 
 MAINTAINER foivos@simula.no
 
