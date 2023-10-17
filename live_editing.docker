@@ -7,15 +7,18 @@ COPY files/* /opt/live_editing/
 
 RUN apt-get update && apt-get install -y --allow-change-held-packages --allow-remove-essential \
         vim \
-        # install python3-paramiko from the bookworm repository. We need paramiko version higher than 2.9 which does not exist in bulleye or bullseye-backports
-        # repositories, so we use the bookworm repository. If the base image gets updated to bookworm or more recent, then we can remove the line below
-        # where we modify /etc/apt/sources.list
-        && echo deb 'http://deb.debian.org/debian bookworm main' >>  /etc/apt/sources.list \
-        && apt update \
-        && apt install  -y --allow-change-held-packages --allow-remove-essential python3-paramiko/bookworm \
-        # now we remove the bookworm repository. If we ever update to bookworm or newer, remove this line as well.
-        && head -n -1 /etc/apt/sources.list > /etc/apt/sources.list_temp && mv /etc/apt/sources.list_temp /etc/apt/sources.list \
-        && apt-get clean -y --allow-change-held-packages --allow-remove-essential clean \
+        # The following are needed to build from source python3-paramiko. The version in the debian debian bullseye repository is very outdated.
+        # we need at least python3-paramiko version 2.9 and this package is not availale in the bullseye-packports repository
+        && apt-get install -y --allow-change-held-packages --allow-remove-essential git build-essential libssl-dev python3-dev python3-setuptools \
+        && git clone https://github.com/paramiko/paramiko.git \
+        && cd paramiko/ \
+        && python3 setup.py build \
+        && python3 setup.py install \
+        && cd .. \
+        && rm -rf \
+        && apt autopurge -y --allow-change-held-packages --allow-remove-essential git build-essential libssl-dev python3-dev python3-setuptools \
+        # end of python3-paramiko part.
+        && apt-get -y --allow-change-held-packages --allow-remove-essential clean \
         && apt-get -y --allow-change-held-packages --allow-remove-essential autoremove \
         # Cleanup
         && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/* /var/tmp/* /usr/share/doc /usr/share/man /usr/share/locale /var/cache/debconf/*-old
